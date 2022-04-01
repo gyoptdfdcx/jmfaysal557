@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13.3
+    restart: always
+    volumes:
+      - ../config/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ../data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: <%= @config['database']['user'] %>
+      POSTGRES_PASSWORD: <%= @config['database']['password'] %>
+    command: "postgres -c config_file=/etc/postgresql/postgresql.conf"
+
+  adminer:
+    image: adminer
+    restart: always
+    depends_on:
+      - db
+    environment:
+      ADMINER_DEFAULT_DB_DRIVER: pgsql
+      ADMINER_DEFAULT_DB_HOST: db
+      ADMINER_DEFAULT_DB_USER: <%= @config['database']['user'] %>
+      ADMINER_DEFAULT_DB_PASSWORD: <%= @config['database']['password'] %>
+    labels:
+      - "traefik.http.routers.adminer-<%= @name %>.rule=Host(`adminer.<%= @config['app']['domain'] %>`)"
+      - "traefik.http.services.adminer-<%= @name %>.loadbalancer.server.port=8080"
+      - "traefik.enable=true"
+      <%- if @config['ssl']['enabled'] -%>
+      - "traefik.http.routers.adminer-<%= @name %>.entrypoints=websecure"
+      - "traefik.http.routers.adminer-<%= @name %>.tls=true"
+      <%- else -%>
+      - "traefik.http.routers.adminer-<%= @name %>.entrypoints=web"
+      <%- end -%>
+
+  redis:
+    image: redis:4.0.10
+    restart: always
+    volumes:
+      - ../data/redis:/data
+
+  rabbitmq:
+    image: rabbitmq:3.7.6-management
+    restart: always
+    volumes:
+      - ../data/rabbitmq:/var/lib/rabbitmq
+
+  nats:
+    image: nats:2.2.6
+    restart: always
+
+  influxdb:
+    image: influxdb:1.7.8
+    restart: always
+    environment:
+      INFLUXDB_ADMIN_ENABLED: "true"
+    volumes:
+      - ../config/influxdb/build_candles.sql:/build_candles.sql
+      - ../config/influxdb/influxdb.sql:/influxdb.sql
+      - ../data/influxdb:/var/lib/influxdb
+
+  vault:
+    image: vault:1.3.0
+    restart: always
+    volumes:
+      - ../data/vault:/vault/data
+      - ../config/vault:/tmp/policies
+    command:
+      - server
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_LOCAL_CONFIG: '{"storage": {"file": { "path": "/vault/data" }}, "listener": {"tcp":{"address": "0.0.0.0:8200","tls_disable":"1"}}}'
+      VAULT_ADDR: http://vault:8200
