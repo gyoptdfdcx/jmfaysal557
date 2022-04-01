@@ -1,0 +1,58 @@
+---
+app:
+  name: Z-Dax
+  domain: zsmartex.tech
+  subdomain: test
+render_protect: false
+ssl:
+  enabled: true
+images:
+  barong: registry.gitlab.com/zsmartex/barong:40e3449b
+  peatio: registry.gitlab.com/zsmartex/peatio:9214b240
+  rango: quay.io/openware/rango:3.0.2
+storage:
+  provider: AWS
+  bucketName: zsmartex
+  accessKey: changeme
+  secretKey: changeme
+twilio:
+  phone_number: "+18577635282"
+  account_sid: changeme
+  auth_token: changeme
+  service_id: changeme
+vault:
+  root_token: changeme
+  peatio_rails_token: changeme
+  peatio_crypto_token: changeme
+  peatio_upstream_token: changeme
+  peatio_matching_token: changeme
+  barong_token: changeme
+  finex_engine_token: changeme
+database:
+  host: db
+  port: 5432
+  user: root
+  password: changeme
+recaptcha:
+  siteKey: changeme
+  secretKey: changeme
+smtp:
+  host: smtp.sendgrid.net
+  port: 2525
+  user: apikey
+  password: changeme
+  sender_email: no-reply@zsmart.tech
+  sender_name: ZSmart
+  sender_logo: https://i.imgur.com/hPhSOgu.png
+daemons:
+  blockchain: true
+  deposit: true
+  deposit_coin_address: true
+  withdraw_coin: true
+  upstream: false
+  peatio_cron_job: true
+  finex_cron_job: true
+  matching: true
+  order_processor: true
+  trade_executor: true
+  mailer: true
